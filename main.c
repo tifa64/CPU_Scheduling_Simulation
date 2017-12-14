@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "queue.h";
 #include "process.h"
 //Passing the array, row# and length of the line read from the matrix
@@ -54,7 +55,7 @@ int main()
 	struct Process p[300];
     FILE *fp;
 	char *line = NULL;
-	int mat[300][300];
+	int mat[300][300], cpu[10], io[10];
 	//Used for later iterations
     int i = 0, j = 0;
     //Rows and columns for the 2 input matrices
@@ -87,9 +88,71 @@ int main()
 			else
 				p[i].ARRIV = mat[i][j];
 		}
+		processInit(&p[i]);
 	}
-	sort(&p, rows);
-	for(i = 0; i < rows;  i++)
-		printf("%d %d %d %d\n", p[i].PID, p[i].CPU, p[i].IO, p[i].ARRIV);
+	sort(p, rows);
+	for(i = 0; i < rows;  i++) {
+	printf("%d %d %d %d %s\n", p[i].PID, p[i].CPU, p[i].IO, p[i].ARRIV, p[i].state);
+	cpu[i] = p[i].CPU;
+	io[i] = p[i].IO;
+}
+	int lineNum = 0, n = rows, occupied = 0, k = 0;
+	i = 0, j = 0;
+	while(k++ < 100) {
+		for(i = 0; i < n ; i++) {
+			if(strcmp(p[i].state, "done") == 0)
+				continue;
+			
+			if(p[i].ARRIV == i && !strcmp(p[i].state, "No") ) {
+				if(occupied) {
+					enqueue(q, p[j].PID);
+					strcpy(p[j].state, "ready");
+					continue;
+                }
+				for(j = 0; j < n; j++) {
+					if(i == j)
+						continue;
+					if(p[j].ARRIV == i && !strcmp(p[j].state, "No")) {
+						enqueue(q, p[j].PID);
+						strcpy(p[j].state, "ready");						
+					}
+				}
+				strcpy(p[i].state, "running");
+				occupied = 1;
+			}
+		}
+		printf("%d ", lineNum++);
+		for(i = 0; i < rows;  i++) {
+			if(!strcmp(p[i].state, "No") || !strcmp(p[i].state, "done")) {
+				continue;
+			}
+			printf("%d: %s", p[i].PID, p[i].state);
+			p[i].CPU --;
+			if(p[i].CPU <= 0) {
+				if(!p[i].IO) {
+					if(p[i].flag == 1) {
+						strcpy(p[i].state, "done");
+						occupied = 0;
+						n--;					
+					}
+					else {
+						p[i].flag = 1;
+						p[i].CPU = cpu[i];
+						if(io[i] == 0)
+							strcpy(p[i].state, "running");
+						else {
+							strcpy(p[i].state, "ready");
+							enqueue(q, p[j].PID);
+						}
+					}			
+				}
+				else {
+					strcpy(p[i].state, "blocked");
+					p[i].IO --;	
+				}
+			}
+		}
+		printf("\n");
+	}
     return 0;
 }
