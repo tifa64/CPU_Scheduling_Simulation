@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "queue.h";
+#include "queue.h"
 #include "process.h"
 //Passing the array, row# and length of the line read from the matrix
 //The columns are calculated inside the function, they are passed as pointer since the funcation is void
@@ -98,23 +98,22 @@ int main()
 }
 	int lineNum = 0, n = rows, occupied = 0, k = 0;
 	i = 0, j = 0;
-	while(k++ < 100) {
+	while(k++ < 20) {
 		for(i = 0; i < n ; i++) {
 			if(strcmp(p[i].state, "done") == 0)
 				continue;
-			
 			if(p[i].ARRIV == i && !strcmp(p[i].state, "No") ) {
 				if(occupied) {
-					enqueue(q, p[j].PID);
 					strcpy(p[j].state, "ready");
+					enqueue(q, p[j]);
 					continue;
                 }
 				for(j = 0; j < n; j++) {
 					if(i == j)
 						continue;
 					if(p[j].ARRIV == i && !strcmp(p[j].state, "No")) {
-						enqueue(q, p[j].PID);
-						strcpy(p[j].state, "ready");						
+						strcpy(p[j].state, "ready");
+						enqueue(q, p[j]);
 					}
 				}
 				strcpy(p[i].state, "running");
@@ -122,6 +121,10 @@ int main()
 			}
 		}
 		printf("%d ", lineNum++);
+		if(queueSZ(q)) {
+			struct Process pr = dequeue(q);
+			//printf("blaaaaaa %d: %s", pr.PID, pr.state);
+		}
 		for(i = 0; i < rows;  i++) {
 			if(!strcmp(p[i].state, "No") || !strcmp(p[i].state, "done")) {
 				continue;
@@ -142,7 +145,7 @@ int main()
 							strcpy(p[i].state, "running");
 						else {
 							strcpy(p[i].state, "ready");
-							enqueue(q, p[j].PID);
+							enqueue(q, p[j]);
 						}
 					}			
 				}
