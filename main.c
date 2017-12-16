@@ -34,13 +34,28 @@ void buildMat(int mat[][300], int i, int j, char *line, int *columns) {
     //We we set the value of the columns
     *columns = jj;
 }
-void sort(struct Process* p, int n) {
+void sortArriv(struct Process* p, int n) {
     int j,i;
     for(i=1;i<n;i++)
     {
         for(j=0;j<n-i;j++)
         {
             if(p[j].ARRIV >p[j+1].ARRIV)
+            {
+                struct Process temp = p[j];
+                p[j] =p[j+1];
+                p[j+1] = temp;
+            }
+        }
+    }
+}
+void sortPid(struct Process* p, int n) {
+    int j,i;
+    for(i=1;i<n;i++)
+    {
+        for(j=0;j<n-i;j++)
+        {
+            if(p[j].PID >p[j+1].PID)
             {
                 struct Process temp = p[j];
                 p[j] =p[j+1];
@@ -90,13 +105,13 @@ int main()
 		}
 		processInit(&p[i]);
 	}
-	sort(p, rows);
+	sortArriv(p, rows);
 	for(i = 0; i < rows;  i++) {
 	printf("%d %d %d %d %s\n", p[i].PID, p[i].CPU, p[i].IO, p[i].ARRIV, p[i].state);
 	cpu[i] = p[i].CPU;
 	io[i] = p[i].IO;
 }
-	int lineNum = 0, occupied = 0, k = -1, sz = 0, innerSZ = 0, n = rows;
+	int lineNum = 0, occupied = 0, k = -1, sz = 0, innerSZ = 0, n = rows, busy = 0;
 	i = 0, j = 0;
 	while(k++ < 1000) {
 		if(n == 0)
@@ -125,6 +140,7 @@ int main()
 					if((!p[i].IO && io[i] != 0) || p[i].flag) {
 						strcpy(p[i].state, "done");
 						occupied = 0;
+						p[i].END = lineNum-1;
 						n--;					
 					}
 					else if(io[i] == 0 && !p[i].flag) {
@@ -140,8 +156,12 @@ int main()
 				}
 				else
 					p[i].CPU --;
-				if(!strcmp(p[i].state, "running") || !strcmp(p[i].state, "blocked"))
+				if(!strcmp(p[i].state, "running") || !strcmp(p[i].state, "blocked")) {
 					printf("%d: %s ", p[i].PID, p[i].state);
+					if(!strcmp(p[i].state, "running"))
+						busy++;
+				}
+					
 			}
 			else if(!strcmp(p[i].state, "blocked")) {
 				if((p[i].IO-1 ) <= 0) {
@@ -160,6 +180,8 @@ int main()
 				}
 				else
 					p[i].IO --;
+				if(!strcmp(p[i].state, "running"))
+						busy++;
 				printf("%d: %s ", p[i].PID, p[i].state);
 			}
 			else if (++sz == queueSZ(q)) {
@@ -176,6 +198,7 @@ int main()
 							break;							
 						}
 					}
+					busy++;
 					printf("%d: %s ", p[j].PID, p[j].state);
 				}
 				while(innerSZ < queueSZ(q)) {
@@ -189,5 +212,11 @@ int main()
 		}
 		printf("\n");
 	}
+	printf("Finishing time: %d", lineNum-2);
+	printf("\nCPU utilization: %f\n",(busy*1.0)/(lineNum-1));
+	sortPid(p, rows);
+	for(i = 0; i < rows; i++){
+		printf("Turnaround process %d: %d\n", i, p[i].END - p[i].ARRIV );
+	} 
     return 0;
 }
