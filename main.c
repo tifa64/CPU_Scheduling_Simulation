@@ -96,9 +96,11 @@ int main()
 	cpu[i] = p[i].CPU;
 	io[i] = p[i].IO;
 }
-	int lineNum = 0, occupied = 0, k = -1;
+	int lineNum = 0, occupied = 0, k = -1, sz = 0, innerSZ = 0, n = rows;
 	i = 0, j = 0;
-	while(k++ < 20) {
+	while(k++ < 1000) {
+		if(n == 0)
+			break;
 		for(i = 0; i < rows ; i++) {
 			if(strcmp(p[i].state, "done") == 0)
 				continue;
@@ -106,20 +108,15 @@ int main()
 				if(occupied) {
 					strcpy(p[i].state, "ready");
 					enqueue(q, p[i]);
-					//continue;
                 }
 				else {
 					strcpy(p[i].state, "running");
 					occupied = 1;
 				}
 			}
-			//if(k == 6)
-				//printf("b5 %d\n", occupied);
 		}  
 		printf("%d ", lineNum++);
 		for(i = 0; i < rows;  i++) {
-			//if(p[i].PID == 3)
-					//printf("\n%d %s ", p[i].CPU, p[i].state);
 			if(!strcmp(p[i].state, "No") || !strcmp(p[i].state, "done")) {
 				continue;
 			}
@@ -128,7 +125,7 @@ int main()
 					if((!p[i].IO && io[i] != 0) || p[i].flag) {
 						strcpy(p[i].state, "done");
 						occupied = 0;
-						//n--;					
+						n--;					
 					}
 					else if(io[i] == 0 && !p[i].flag) {
 						occupied = 1;
@@ -148,36 +145,46 @@ int main()
 			}
 			else if(!strcmp(p[i].state, "blocked")) {
 				if((p[i].IO-1 ) <= 0) {
-					p[i].CPU = cpu[i];	
-					//else {
+					p[i].CPU = cpu[i];
+					p[i].flag = 1;
+					if(!occupied){
+						strcpy(p[i].state, "running");
+						occupied = 1;
+						p[i].CPU --;
+					}	
+					else {
 						strcpy(p[i].state, "ready");
 						enqueue(q, p[i]);
-						//printf("Hello?");
-					//}					
+						//printf("\n%d\n", p[i].PID);
+					}					
 				}
 				else
 					p[i].IO --;
 				printf("%d: %s ", p[i].PID, p[i].state);
 			}
-			else {
-				if(queueSZ(q)) {
+			else if (++sz == queueSZ(q)) {
+				innerSZ = 0;
+				if(queueSZ(q) && !occupied) {
 					struct Process pr = dequeue(q);
-					//printf("\nh%d ", pr.PID);
-					if(!occupied){
-						occupied = 1;
-						strcpy(pr.state, "running");
-						p[i].CPU --;
-					}
-					else
-						enqueue(q, pr);
+					occupied = 1;
+					strcpy(pr.state, "running");
+					pr.CPU --;					
 					for(j = 0; j < rows;  j++) {
 						if(p[j].PID == pr.PID) {
 							strcpy(p[j].state, pr.state);
-							break;
+							p[j].CPU = pr.CPU;
+							break;							
 						}
 					}
 					printf("%d: %s ", p[j].PID, p[j].state);
 				}
+				while(innerSZ < queueSZ(q)) {
+					struct Process pr = dequeue(q);
+					printf("%d: %s ", pr.PID, pr.state);
+					enqueue(q, pr);
+					innerSZ++;
+				}
+				sz = 0;
 			}
 		}
 		printf("\n");

@@ -16,6 +16,10 @@ struct Process dequeue (struct Queue *q) {
     q->sz--;
     return p;
 }
+struct Process peak (struct Queue *q) {
+    struct Process p = q->arr[q->fr];
+    return p;
+}
  struct Queue* initialize (int cap) {
     struct Queue *q = (struct Queue *) malloc(sizeof (struct Queue));
     q->capacity = cap;
