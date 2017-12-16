@@ -2,7 +2,7 @@
 + Simulates  two  operating  system  scheduling algorithms:  First  Come  First  Served  (FCFS)  and  Round Robin  (RR)
 ---
 ## Code Structure 
-_First come first serve scheduling algorithm:_
+### _First come first serve scheduling algorithm:_
   -	Reading input:
     + The input processes are read from a file line by line, then storing the input in an array of structure.
     
