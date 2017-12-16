@@ -111,15 +111,13 @@ int main()
 	cpu[i] = p[i].CPU;
 	io[i] = p[i].IO;
 }
-	int lineNum = 0, occupied = 0, k = -1, sz = 0, innerSZ = 0, n = rows, busy = 0;
+	int lineNum = 0, occupied = 0, sz = 0, innerSZ = 0, n = rows, busy = 0;
 	i = 0, j = 0;
-	while(k++ < 1000) {
-		if(n == 0)
-			break;
+	while(n) {
 		for(i = 0; i < rows ; i++) {
 			if(strcmp(p[i].state, "done") == 0)
 				continue;
-			if(p[i].ARRIV == k && !strcmp(p[i].state, "No") ) {
+			if(p[i].ARRIV == lineNum && !strcmp(p[i].state, "No") ) {
 				if(occupied) {
 					strcpy(p[i].state, "ready");
 					enqueue(q, p[i]);
@@ -129,8 +127,8 @@ int main()
 					occupied = 1;
 				}
 			}
-		}  
-		printf("%d ", lineNum++);
+		}
+		printf("%d", lineNum++);
 		for(i = 0; i < rows;  i++) {
 			if(!strcmp(p[i].state, "No") || !strcmp(p[i].state, "done")) {
 				continue;
